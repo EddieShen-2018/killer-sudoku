@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>杀手数独</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/board.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部设置栏 -->
+        <header class="top-bar">
+            <div class="title">杀手数独</div>
+            <div class="settings">
+                <div class="setting-group">
+                    <label>尺寸</label>
+                    <div class="btn-group" id="size-group">
+                        <button class="btn btn-toggle" data-size="4">4×4</button>
+                        <button class="btn btn-toggle" data-size="6">6×6</button>
+                        <button class="btn btn-toggle active" data-size="9">9×9</button>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label>难度</label>
+                    <select id="difficulty-select" class="select">
+                        <option value="beginner">入门</option>
+                        <option value="easy">简单</option>
+                        <option value="medium">中等</option>
+                        <option value="hard">困难</option>
+                        <option value="expert" selected>专家</option>
+                    </select>
+                </div>
+                <button id="new-game-btn" class="btn btn-primary">新游戏</button>
+            </div>
+        </header>
+
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span id="status-text">点击"新游戏"开始</span>
+            <span id="completed-badge" class="badge badge-completed" style="display:none;">已通关</span>
+        </div>
+
+        <!-- 棋盘区域 -->
+        <main class="board-container">
+            <div id="board" class="board"></div>
+            <div id="loading" class="loading" style="display:none;">生成中...</div>
+        </main>
+
+        <!-- 底部操作区 -->
+        <footer class="bottom-bar">
+            <div class="calc-bar calc-off" id="calc-bar">
+                <button id="calc-toggle" class="btn btn-calc btn-calc-toggle" title="开关计算器联动">∑</button>
+                <input type="text" id="calc-display" class="calc-display" value="0" inputmode="numeric" title="计算器：输入数字后用 + − = 运算，C 归零">
+                <button id="calc-plus" class="btn btn-calc" title="加">+</button>
+                <button id="calc-minus" class="btn btn-calc" title="减">−</button>
+                <button id="calc-clear" class="btn btn-calc" title="归零">C</button>
+                <button id="calc-equals" class="btn btn-calc" title="等于">=</button>
+            </div>
+            <div class="action-row">
+                <button id="undo-btn" class="btn btn-action" title="撤销（最多3步）">
+                    <span class="icon">↶</span>
+                </button>
+                <button id="note-btn" class="btn btn-action" title="标记模式">
+                    <span class="icon">✎</span>
+                </button>
+                <button id="erase-btn" class="btn btn-action" title="清除">
+                    <span class="icon">✕</span>
+                </button>
+                <button id="check-btn" class="btn btn-action" title="验证">
+                    <span class="icon">✓</span>
+                </button>
+            </div>
+            <div id="number-pad" class="number-pad"></div>
+        </footer>
+    </div>
+
+    <script src="./js/storage.js"></script>
+    <script src="./puzzles/all-puzzles.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/board.js"></script>
+    <script src="./js/app.js"></script>
+</body>
+</html>
