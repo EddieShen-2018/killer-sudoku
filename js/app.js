@@ -32,6 +32,9 @@ const App = {
 
         // 检测是否有已保存的进度，启用读取按钮
         this._updateLoadButton();
+
+        // 初始适配棋盘尺寸
+        requestAnimationFrame(() => this._fitBoard());
     },
 
     /**
@@ -63,6 +66,7 @@ const App = {
         this._updateUndoButton();
 
         this._setStatus(`Click "New" to start ${this.size}×${this.size} ${this._difficultyLabel(this.difficulty)}`);
+        requestAnimationFrame(() => this._fitBoard());
     },
 
     /**
@@ -124,6 +128,24 @@ const App = {
         document.addEventListener("keydown", (e) => {
             this._handleKeydown(e);
         });
+
+        // 窗口尺寸变化时重新适配棋盘
+        window.addEventListener("resize", () => this._fitBoard());
+        window.addEventListener("orientationchange", () => setTimeout(() => this._fitBoard(), 200));
+    },
+
+    /**
+     * 动态计算棋盘尺寸：取容器宽高的较小值，确保正方形棋盘不溢出
+     */
+    _fitBoard() {
+        const container = document.querySelector(".board-container");
+        const board = document.getElementById("board");
+        if (!container || !board) return;
+        const w = container.clientWidth - 12; // 减去 padding
+        const h = container.clientHeight - 12;
+        const size = Math.max(0, Math.min(w, h, 560));
+        board.style.width = size + "px";
+        board.style.height = size + "px";
     },
 
     /**
@@ -195,6 +217,9 @@ const App = {
 
         // 隐藏提示面板（新棋盘无选中格）
         this._updateHint(null);
+
+        // 适配棋盘尺寸
+        requestAnimationFrame(() => this._fitBoard());
     },
 
     /**
