@@ -33,8 +33,8 @@ const App = {
         // 检测是否有已保存的进度，启用读取按钮
         this._updateLoadButton();
 
-        // 初始适配棋盘尺寸
-        requestAnimationFrame(() => this._fitBoard());
+        // 初始适配棋盘尺寸（延迟确保布局完成）
+        setTimeout(() => this._fitBoard(), 0);
     },
 
     /**
@@ -66,7 +66,7 @@ const App = {
         this._updateUndoButton();
 
         this._setStatus(`Click "New" to start ${this.size}×${this.size} ${this._difficultyLabel(this.difficulty)}`);
-        requestAnimationFrame(() => this._fitBoard());
+        setTimeout(() => this._fitBoard(), 0);
     },
 
     /**
@@ -135,17 +135,24 @@ const App = {
     },
 
     /**
-     * 动态计算棋盘尺寸：取容器宽高的较小值，确保正方形棋盘不溢出
+     * 动态计算棋盘尺寸：取容器内容区宽高的较小值，确保正方形棋盘不溢出
      */
     _fitBoard() {
         const container = document.querySelector(".board-container");
         const board = document.getElementById("board");
         if (!container || !board) return;
-        const w = container.clientWidth - 12; // 减去 padding
-        const h = container.clientHeight - 12;
+        const rect = container.getBoundingClientRect();
+        const cs = getComputedStyle(container);
+        const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+        const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+        const w = rect.width - padX;
+        const h = rect.height - padY;
         const size = Math.max(0, Math.min(w, h, 560));
         board.style.width = size + "px";
         board.style.height = size + "px";
+        // 调试：临时显示在状态栏
+        const status = document.getElementById("status-text");
+        if (status) status.textContent = `w=${Math.round(w)} h=${Math.round(h)} size=${Math.round(size)}`;
     },
 
     /**
@@ -219,7 +226,7 @@ const App = {
         this._updateHint(null);
 
         // 适配棋盘尺寸
-        requestAnimationFrame(() => this._fitBoard());
+        setTimeout(() => this._fitBoard(), 0);
     },
 
     /**
@@ -1028,4 +1035,8 @@ const App = {
 // 启动应用
 document.addEventListener("DOMContentLoaded", () => {
     App.init();
+});
+// 页面完全加载后再次适配（确保样式已应用）
+window.addEventListener("load", () => {
+    App._fitBoard();
 });
