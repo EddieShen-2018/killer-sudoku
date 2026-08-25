@@ -454,9 +454,6 @@ html, body {
 
 /* 响应式：手机端 — 压缩非棋盘元素，最大化棋盘空间 */
 @media (max-width: 480px) {
-    .title {
-        display: none;
-    }
     .top-bar {
         padding: 6px 8px;
     }
