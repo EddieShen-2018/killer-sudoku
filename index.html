@@ -41,16 +41,14 @@
             <span id="completed-badge" class="badge badge-completed" style="display:none;">Completed</span>
         </div>
 
-        <!-- 提示面板：以公式显示选中格所在宫/笼的数字之和 -->
-        <div id="hint-panel" class="hint-panel" style="display:none;">
-            <div class="hint-item"><span class="hint-label">Box:</span><span id="hint-box" class="hint-value">0=0</span></div>
-            <div class="hint-item"><span class="hint-label">Cage:</span><span id="hint-cage" class="hint-value">0=0</span></div>
-            <div class="hint-item"><span class="hint-label">Box cages:</span><span id="hint-box-cages" class="hint-value">0=0</span></div>
-            <div class="hint-item"><span class="hint-label">Boxes cages:</span><span id="hint-cage-boxes" class="hint-value">0=0</span></div>
-        </div>
-
-        <!-- 棋盘区域 -->
+        <!-- 棋盘区域（含提示面板，hint 在棋盘上方） -->
         <main class="board-container">
+            <div id="hint-panel" class="hint-panel" style="display:none;">
+                <div class="hint-item"><span class="hint-label">Box:</span><span id="hint-box" class="hint-value">0=0</span></div>
+                <div class="hint-item"><span class="hint-label">Cage:</span><span id="hint-cage" class="hint-value">0=0</span></div>
+                <div class="hint-item"><span class="hint-label">Box cages:</span><span id="hint-box-cages" class="hint-value">0=0</span></div>
+                <div class="hint-item"><span class="hint-label">Boxes cages:</span><span id="hint-cage-boxes" class="hint-value">0=0</span></div>
+            </div>
             <div id="board" class="board"></div>
             <div id="loading" class="loading" style="display:none;">Generating...</div>
         </main>

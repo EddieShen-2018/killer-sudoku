@@ -2,8 +2,9 @@
 
 .board {
     display: grid;
-    width: min(100%, 92vw, 560px);
+    max-width: 560px;
     aspect-ratio: 1;
+    flex-shrink: 0;
     background-color: var(--color-border);
     gap: 1px;
     padding: 2px;

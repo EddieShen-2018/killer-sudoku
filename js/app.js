@@ -33,6 +33,8 @@ const App = {
         // 检测是否有已保存的进度，启用读取按钮
         this._updateLoadButton();
 
+        // 初始计算棋盘大小
+        setTimeout(() => this._fitBoard(), 0);
     },
 
     /**
@@ -64,6 +66,9 @@ const App = {
         this._updateUndoButton();
 
         this._setStatus(`Click "New" to start ${this.size}×${this.size} ${this._difficultyLabel(this.difficulty)}`);
+
+        // 重新计算棋盘大小
+        setTimeout(() => this._fitBoard(), 0);
     },
 
     /**
@@ -120,12 +125,37 @@ const App = {
 
         // 迷你计算器
         this._initCalculator();
-// 键盘支持
-document.addEventListener("keydown", (e) => {
-    this._handleKeydown(e);
-});
-},
 
+        // 键盘支持
+        document.addEventListener("keydown", (e) => {
+            this._handleKeydown(e);
+        });
+
+        // 窗口尺寸变化时重新计算棋盘大小
+        window.addEventListener("resize", () => this._fitBoard());
+        window.addEventListener("orientationchange", () => {
+            setTimeout(() => this._fitBoard(), 200);
+        });
+    },
+
+    /**
+     * 根据容器宽度计算棋盘大小（正方形）
+     * 容器自然高度=棋盘高度，不撑满屏幕；hint 紧贴棋盘下方
+     */
+    _fitBoard() {
+        const container = document.querySelector(".board-container");
+        const board = document.getElementById("board");
+        if (!container || !board) return;
+
+        const rect = container.getBoundingClientRect();
+        const cs = getComputedStyle(container);
+        const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+        const w = rect.width - padX;
+        const size = Math.max(0, Math.min(w, 560));
+
+        board.style.width = size + "px";
+        board.style.height = size + "px";
+    },
 
     /**
      * 设置棋盘尺寸
@@ -196,6 +226,9 @@ document.addEventListener("keydown", (e) => {
 
         // 隐藏提示面板（新棋盘无选中格）
         this._updateHint(null);
+
+        // 重新计算棋盘大小
+        setTimeout(() => this._fitBoard(), 0);
     },
 
     /**
@@ -312,23 +345,14 @@ document.addEventListener("keydown", (e) => {
             return false;
         };
 
-        // 3. 所在宫中有交集且含未填格的笼的目标值
+        // 3. 所在宫中有交集的笼的目标值（含已填完的笼）
         const boxCagesTargets = [];
         for (const cg of cages) {
             if (!cageIntersectsBox(cg, boxR0, boxC0)) continue;
-            let emptyInBox = 0;
-            for (const [rr, cc] of cg.cells) {
-                if (rr >= boxR0 && rr < boxR0 + boxRows &&
-                    cc >= boxC0 && cc < boxC0 + boxCols) {
-                    if (isEmpty(rr, cc)) emptyInBox++;
-                }
-            }
-            if (emptyInBox > 0) {
-                boxCagesTargets.push(cg.target_sum);
-            }
+            boxCagesTargets.push(cg.target_sum);
         }
 
-        // 4. 与所在笼有相同宫且含未填格的笼的目标值（含自身）
+        // 4. 与所在笼有相同宫的笼的目标值（含自身，含已填完的笼）
         const cageBoxSet = new Set();
         for (const [rr, cc] of cage.cells) {
             const bR = Math.floor(rr / boxRows) * boxRows;
@@ -346,12 +370,7 @@ document.addEventListener("keydown", (e) => {
                     break;
                 }
             }
-            if (!hasOverlap) continue;
-            let hasEmpty = false;
-            for (const [rr, cc] of cg.cells) {
-                if (isEmpty(rr, cc)) { hasEmpty = true; break; }
-            }
-            if (hasEmpty) {
+            if (hasOverlap) {
                 cageBoxesTargets.push(cg.target_sum);
             }
         }
@@ -1004,4 +1023,9 @@ document.addEventListener("keydown", (e) => {
 // 启动应用
 document.addEventListener("DOMContentLoaded", () => {
     App.init();
+});
+
+// 页面完全加载后再次计算棋盘大小（确保字体/布局就绪）
+window.addEventListener("load", () => {
+    setTimeout(() => App._fitBoard(), 0);
 });

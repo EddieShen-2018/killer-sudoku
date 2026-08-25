@@ -54,7 +54,6 @@ html, body {
     max-width: 600px;
     margin: 0 auto;
     background-color: var(--color-bg);
-    overflow-x: hidden;
 }
 
 /* 顶部设置栏 */
@@ -330,16 +329,19 @@ html, body {
     flex-shrink: 0;
 }
 
-/* 提示面板 */
+/* 提示面板：棋盘下方，自然高度 */
 .hint-panel {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
+    align-content: center;
     gap: 6px 14px;
     padding: 4px 12px 6px;
     font-size: 12px;
     color: var(--color-text-secondary);
     flex-shrink: 0;
+    width: 100%;
 }
 .hint-item {
     display: flex;
@@ -368,11 +370,11 @@ html, body {
     color: var(--color-surface);
 }
 
-/* 棋盘容器 */
+/* 棋盘容器：自然高度=棋盘高度，不撑满 */
 .board-container {
-    flex: 1;
-    min-height: 0;
+    flex-shrink: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 6px;
