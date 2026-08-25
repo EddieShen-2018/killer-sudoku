@@ -49,12 +49,12 @@ html, body {
 #app {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
     max-width: 600px;
     margin: 0 auto;
     background-color: var(--color-bg);
-    overflow: hidden;
+    overflow-x: hidden;
 }
 
 /* 顶部设置栏 */
@@ -377,7 +377,6 @@ html, body {
     justify-content: center;
     padding: 6px;
     position: relative;
-    overflow: hidden;
 }
 
 .loading {

@@ -2,7 +2,7 @@
 
 .board {
     display: grid;
-    max-width: 560px;
+    width: min(100%, 92vw, 560px);
     aspect-ratio: 1;
     background-color: var(--color-border);
     gap: 1px;
