@@ -30,10 +30,10 @@ const API = {
         if (!this._index) {
             try {
                 const resp = await fetch("./puzzles/index.json");
-                if (!resp.ok) throw new Error("无法加载谜题索引");
+                if (!resp.ok) throw new Error("Failed to load puzzle index");
                 this._index = await resp.json();
             } catch (e) {
-                console.error("加载索引失败:", e);
+                console.error("Failed to load index:", e);
                 this._index = {};
             }
         }
@@ -55,17 +55,17 @@ const API = {
                          window.ALL_PUZZLES[sizeKey][difficulty] &&
                          window.ALL_PUZZLES[sizeKey][difficulty][puzzleId];
             if (data) return data;
-            throw new Error(`内联数据中找不到谜题: ${puzzleId}`);
+            throw new Error(`Puzzle not found in inline data: ${puzzleId}`);
         }
 
         // 回退：fetch 静态 JSON
         const parts = puzzleId.split("_");
-        if (parts.length < 2) throw new Error("无效的谜题 ID");
+        if (parts.length < 2) throw new Error("Invalid puzzle ID");
         const sizeKey = parts[0];
         const difficulty = parts[1];
         const url = `./puzzles/${sizeKey}/${difficulty}/${puzzleId}.json`;
         const resp = await fetch(url);
-        if (!resp.ok) throw new Error(`谜题不存在 (${resp.status})`);
+        if (!resp.ok) throw new Error(`Puzzle not found (${resp.status})`);
         return await resp.json();
     },
 
@@ -78,7 +78,7 @@ const API = {
     async getPuzzle(size, difficulty) {
         const ids = await this._getPuzzleIds(size, difficulty);
         if (ids.length === 0) {
-            throw new Error(`暂无 ${size}x${size} ${difficulty} 难度的谜题`);
+            throw new Error(`No ${size}x${size} ${difficulty} puzzles available`);
         }
 
         // 随机选一个
@@ -142,7 +142,7 @@ const API = {
         for (let r = 0; r < size; r++) {
             for (let c = 0; c < size; c++) {
                 if (solution[r][c] && solution[r][c] !== 0 && solution[r][c] !== correctSolution[r][c]) {
-                    errors.push(`单元格 (${r + 1},${c + 1}) 的数字 ${solution[r][c]} 不正确`);
+                    errors.push(`Cell (${r + 1},${c + 1}) value ${solution[r][c]} is incorrect`);
                     errorCells.push([r, c]);
                 }
             }
@@ -164,11 +164,11 @@ const API = {
         return {
             sizes: [4, 6, 9],
             difficulties: [
-                { value: "beginner", label: "入门" },
-                { value: "easy", label: "简单" },
-                { value: "medium", label: "中等" },
-                { value: "hard", label: "困难" },
-                { value: "expert", label: "专家" },
+                { value: "beginner", label: "Beginner" },
+                { value: "easy", label: "Easy" },
+                { value: "medium", label: "Medium" },
+                { value: "hard", label: "Hard" },
+                { value: "expert", label: "Expert" },
             ],
         };
     },

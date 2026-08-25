@@ -118,9 +118,14 @@ const Board = {
         notesEl.style.display = "none";
         cell.appendChild(notesEl);
 
-        // 点击事件
+        // 点击事件：再次点击已选中格则取消选中
         cell.addEventListener("click", () => {
-            this.selectCell(r, c);
+            if (this.selectedCell && this.selectedCell.row === r && this.selectedCell.col === c) {
+                this.clearSelection();
+                if (this.onCellSelect) this.onCellSelect(null, null);
+            } else {
+                this.selectCell(r, c);
+            }
         });
 
         return cell;

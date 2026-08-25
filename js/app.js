@@ -29,6 +29,9 @@ const App = {
         // 默认显示空白 9×9 棋盘
         this.difficulty = document.getElementById("difficulty-select").value;
         this._renderEmptyBoard();
+
+        // 检测是否有已保存的进度，启用读取按钮
+        this._updateLoadButton();
     },
 
     /**
@@ -54,11 +57,12 @@ const App = {
 
         // 更新通关标记
         this._updateCompletedBadge();
+        this._updateBoardCompletedBorder();
 
         // 更新撤销按钮状态
         this._updateUndoButton();
 
-        this._setStatus(`点击"新游戏"开始 ${this.size}×${this.size} ${this._difficultyLabel(this.difficulty)}`);
+        this._setStatus(`Click "New" to start ${this.size}×${this.size} ${this._difficultyLabel(this.difficulty)}`);
     },
 
     /**
@@ -72,9 +76,25 @@ const App = {
             });
         });
 
+        // 难度选择：更新当前难度并刷新读取按钮状态
+        document.getElementById("difficulty-select").addEventListener("change", (e) => {
+            this.difficulty = e.target.value;
+            this._updateLoadButton();
+        });
+
         // 新游戏
         document.getElementById("new-game-btn").addEventListener("click", () => {
             this.startNewGame();
+        });
+
+        // 保存进度
+        document.getElementById("save-btn").addEventListener("click", () => {
+            this.saveProgress();
+        });
+
+        // 读取进度
+        document.getElementById("load-btn").addEventListener("click", () => {
+            this.loadProgress();
         });
 
         // 撤销
@@ -118,6 +138,8 @@ const App = {
         if (!this.puzzle) {
             this._renderEmptyBoard();
         }
+        // 尺寸变化后刷新读取按钮状态（按当前尺寸+难度判断是否有存档）
+        this._updateLoadButton();
     },
 
     /**
@@ -126,14 +148,14 @@ const App = {
     async startNewGame() {
         this.difficulty = document.getElementById("difficulty-select").value;
         this._setLoading(true);
-        this._setStatus("生成中...");
+        this._setStatus("Generating...");
 
         try {
             const puzzle = await API.getPuzzle(this.size, this.difficulty);
             this._loadPuzzle(puzzle);
-            this._setStatus(`已加载 ${this.size}×${this.size} ${this._difficultyLabel(this.difficulty)}`);
+            this._setStatus(`Loaded ${this.size}×${this.size} ${this._difficultyLabel(this.difficulty)}`);
         } catch (e) {
-            this._setStatus(`错误: ${e.message}`);
+            this._setStatus(`Error: ${e.message}`);
             console.error(e);
         } finally {
             this._setLoading(false);
@@ -159,6 +181,9 @@ const App = {
         Board.init(puzzle);
         Board.onCellSelect = (r, c) => this._onCellSelect(r, c);
 
+        // 根据通关状态显示/隐藏金色边框
+        this._updateBoardCompletedBorder();
+
         // 渲染数字条
         this._renderNumberPad();
 
@@ -167,6 +192,9 @@ const App = {
 
         // 更新撤销按钮状态
         this._updateUndoButton();
+
+        // 隐藏提示面板（新棋盘无选中格）
+        this._updateHint(null);
     },
 
     /**
@@ -193,8 +221,11 @@ const App = {
             btn.appendChild(countEl);
 
             btn.addEventListener("click", () => {
-                this._inputNumber(n);
-                if (this.calcActive) this._calcInputDigit(n);
+                if (this.calcActive) {
+                    this._calcInputDigit(n);
+                } else {
+                    this._inputNumber(n);
+                }
             });
             pad.appendChild(btn);
         }
@@ -204,7 +235,7 @@ const App = {
         zeroBtn.className = "number-btn number-btn-zero";
         zeroBtn.dataset.number = 0;
         zeroBtn.textContent = "0";
-        zeroBtn.title = "仅用于计算器";
+        zeroBtn.title = "Calculator only";
         zeroBtn.addEventListener("click", () => {
             if (this.calcActive) this._calcInputDigit(0);
         });
@@ -219,6 +250,121 @@ const App = {
     _onCellSelect(r, c) {
         Board._updateHighlights(this.userGrid);
         this._updateNumberPad();
+        this._updateHint(r, c);
+    },
+
+    /**
+     * 更新提示面板：显示选中格所在宫/笼的数字之和
+     * 1. 所在宫已填数字之和
+     * 2. 所在笼已填数字之和
+     * 3. 所在宫中有交集的笼的未填数字之和（笼目标值之和）
+     * 4. 与所在笼有相同宫的笼的未填数字之和（笼目标值之和）
+     */
+    _updateHint(r, c) {
+        const panel = document.getElementById("hint-panel");
+        if (r === null || r === undefined || !this.puzzle) {
+            panel.style.display = "none";
+            return;
+        }
+        panel.style.display = "flex";
+
+        const size = this.size;
+        const boxRows = Board._getBoxRows();
+        const boxCols = Board._getBoxCols();
+        const cages = Board.cages;
+        const cellToCage = Board.cellToCage;
+
+        // 选中格所在宫的行列范围
+        const boxR0 = Math.floor(r / boxRows) * boxRows;
+        const boxC0 = Math.floor(c / boxCols) * boxCols;
+        const boxCells = [];
+        for (let rr = boxR0; rr < boxR0 + boxRows; rr++) {
+            for (let cc = boxC0; cc < boxC0 + boxCols; cc++) {
+                boxCells.push([rr, cc]);
+            }
+        }
+
+        // 1. 所在宫已填数字
+        const boxFilledNums = [];
+        for (const [rr, cc] of boxCells) {
+            if (this.userGrid[rr][cc]) boxFilledNums.push(this.userGrid[rr][cc]);
+        }
+
+        // 2. 所在笼已填数字
+        const cageIdx = cellToCage[`${r},${c}`];
+        const cage = cages[cageIdx];
+        const cageFilledNums = [];
+        for (const [rr, cc] of cage.cells) {
+            if (this.userGrid[rr][cc]) cageFilledNums.push(this.userGrid[rr][cc]);
+        }
+
+        // 辅助：判断某格是否未填
+        const isEmpty = (rr, cc) => !this.userGrid[rr][cc];
+
+        // 辅助：判断某笼是否与给定宫有交集
+        const cageIntersectsBox = (cg, bR0, bC0) => {
+            for (const [rr, cc] of cg.cells) {
+                if (rr >= bR0 && rr < bR0 + boxRows && cc >= bC0 && cc < bC0 + boxCols) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        // 3. 所在宫中有交集且含未填格的笼的目标值
+        const boxCagesTargets = [];
+        for (const cg of cages) {
+            if (!cageIntersectsBox(cg, boxR0, boxC0)) continue;
+            let emptyInBox = 0;
+            for (const [rr, cc] of cg.cells) {
+                if (rr >= boxR0 && rr < boxR0 + boxRows &&
+                    cc >= boxC0 && cc < boxC0 + boxCols) {
+                    if (isEmpty(rr, cc)) emptyInBox++;
+                }
+            }
+            if (emptyInBox > 0) {
+                boxCagesTargets.push(cg.target_sum);
+            }
+        }
+
+        // 4. 与所在笼有相同宫且含未填格的笼的目标值（含自身）
+        const cageBoxSet = new Set();
+        for (const [rr, cc] of cage.cells) {
+            const bR = Math.floor(rr / boxRows) * boxRows;
+            const bC = Math.floor(cc / boxCols) * boxCols;
+            cageBoxSet.add(`${bR},${bC}`);
+        }
+        const cageBoxesTargets = [];
+        for (const cg of cages) {
+            let hasOverlap = false;
+            for (const [rr, cc] of cg.cells) {
+                const bR = Math.floor(rr / boxRows) * boxRows;
+                const bC = Math.floor(cc / boxCols) * boxCols;
+                if (cageBoxSet.has(`${bR},${bC}`)) {
+                    hasOverlap = true;
+                    break;
+                }
+            }
+            if (!hasOverlap) continue;
+            let hasEmpty = false;
+            for (const [rr, cc] of cg.cells) {
+                if (isEmpty(rr, cc)) { hasEmpty = true; break; }
+            }
+            if (hasEmpty) {
+                cageBoxesTargets.push(cg.target_sum);
+            }
+        }
+
+        // 格式化为等式：左边列出求和项，右边为求和后的值
+        const fmt = (nums) => {
+            if (nums.length === 0) return "0=0";
+            const total = nums.reduce((a, b) => a + b, 0);
+            return `${nums.join("+")}=${total}`;
+        };
+        document.getElementById("hint-box").textContent = fmt(boxFilledNums);
+        document.getElementById("hint-cage").textContent = fmt(cageFilledNums);
+        document.getElementById("hint-box-cages").textContent = fmt(boxCagesTargets);
+        document.getElementById("hint-cage-boxes").textContent = fmt(cageBoxesTargets);
     },
 
     /**
@@ -258,6 +404,7 @@ const App = {
         Board.clearErrors();
         Board._updateHighlights(this.userGrid);
         this._updateNumberPad();
+        this._updateHint(row, col);
     },
 
     /**
@@ -315,6 +462,7 @@ const App = {
         Board.setCellNotes(row, col, new Set());
         Board._updateHighlights(this.userGrid);
         this._updateNumberPad();
+        this._updateHint(row, col);
     },
 
     /**
@@ -349,6 +497,9 @@ const App = {
         Board._updateHighlights(this.userGrid);
         this._updateNumberPad();
         this._updateUndoButton();
+        if (Board.selectedCell) {
+            this._updateHint(Board.selectedCell.row, Board.selectedCell.col);
+        }
     },
 
     /**
@@ -426,7 +577,7 @@ const App = {
         }
 
         if (!filled) {
-            this._setStatus("尚未填满，请继续");
+            this._setStatus("Not filled yet, keep going");
             return;
         }
 
@@ -438,16 +589,16 @@ const App = {
                 this.puzzle._solution
             );
             if (result.valid) {
-                this._setStatus("恭喜！解答正确！");
+                this._setStatus("Congratulations! Correct!");
                 this._onComplete();
             } else {
                 // 标记错误单元格
                 const errorCells = result.error_cells || [];
                 Board.markErrors(errorCells);
-                this._setStatus(`有 ${errorCells.length} 处错误`);
+                this._setStatus(`${errorCells.length} error(s) found`);
             }
         } catch (e) {
-            this._setStatus(`验证失败: ${e.message}`);
+            this._setStatus(`Validation failed: ${e.message}`);
         } finally {
             this._setLoading(false);
         }
@@ -461,7 +612,19 @@ const App = {
             Storage.markCompleted(this.puzzle.puzzle_id);
             this.completed = true;
             this._updateCompletedBadge();
+            this._updateBoardCompletedBorder();
+            // 通关后清除当前槽位存档（已通关无需继续）
+            Storage.clearProgress(this.size, this.difficulty);
+            this._updateLoadButton();
         }
+    },
+
+    /**
+     * 根据通关状态切换棋盘金色边框
+     */
+    _updateBoardCompletedBorder() {
+        const board = document.getElementById("board");
+        if (board) board.classList.toggle("completed", this.completed);
     },
 
     /**
@@ -472,10 +635,137 @@ const App = {
         badge.style.display = this.completed ? "inline-block" : "none";
     },
 
+    /* ==================== 进度存档 ==================== */
+
+    /**
+     * 保存当前进度（填数 + 笔记）
+     */
+    saveProgress() {
+        if (!this.puzzle) {
+            this._setStatus("Start a game first before saving");
+            return;
+        }
+        // 序列化 notes：Set -> 数组
+        const notesData = {};
+        for (const key in this.notes) {
+            if (this.notes[key] && this.notes[key].size > 0) {
+                notesData[key] = [...this.notes[key]];
+            }
+        }
+        const ok = Storage.saveProgress(this.size, this.difficulty, {
+            puzzle_id: this.puzzle.puzzle_id,
+            userGrid: this.userGrid,
+            notes: notesData,
+            noteMode: this.noteMode,
+            completed: this.completed,
+        });
+        if (ok) {
+            this._updateLoadButton();
+            this._setStatus(`Progress saved (${this.size}×${this.size} ${this._difficultyLabel(this.difficulty)})`);
+        } else {
+            this._setStatus("Save failed, please retry");
+        }
+    },
+
+    /**
+     * 读取已保存的进度
+     * @param {number} size - 棋盘尺寸（不传则使用当前尺寸）
+     * @param {string} difficulty - 难度（不传则使用当前难度）
+     */
+    async loadProgress(size, difficulty) {
+        const loadSize = size || this.size;
+        const loadDiff = difficulty || this.difficulty;
+        const data = Storage.loadProgress(loadSize, loadDiff);
+        if (!data) {
+            this._setStatus(`No saved progress for ${loadSize}×${loadSize} ${this._difficultyLabel(loadDiff)}`);
+            return;
+        }
+
+        this._setLoading(true);
+        this._setStatus("Loading progress...");
+        try {
+            // 按 puzzle_id 重新加载谜题数据（cages / solution）
+            const puzzle = await API.getPuzzleById(data.puzzle_id);
+            // 初始化棋盘（会重置 userGrid/notes/history）
+            this._loadPuzzle(puzzle);
+
+            // 恢复尺寸/难度，保持与存档一致
+            this.difficulty = loadDiff;
+            this._setSize(loadSize);
+            document.getElementById("difficulty-select").value = this.difficulty;
+
+            // 恢复填数
+            for (let r = 0; r < this.size; r++) {
+                for (let c = 0; c < this.size; c++) {
+                    const val = data.userGrid[r][c];
+                    this.userGrid[r][c] = val;
+                    Board.setCellValue(r, c, val);
+                }
+            }
+
+            // 恢复笔记：数组 -> Set
+            this.notes = {};
+            for (const key in data.notes) {
+                this.notes[key] = new Set(data.notes[key]);
+                const [r, c] = key.split(",").map(Number);
+                Board.setCellNotes(r, c, this.notes[key]);
+            }
+
+            // 恢复标记模式
+            this.noteMode = !!data.noteMode;
+            document.getElementById("note-btn").classList.toggle("active", this.noteMode);
+
+            // 恢复通关状态
+            this.completed = !!data.completed;
+            this._updateCompletedBadge();
+            this._updateBoardCompletedBorder();
+
+            // 刷新数字条计数与高亮
+            Board._updateHighlights(this.userGrid);
+            this._updateNumberPad();
+            this._updateUndoButton();
+
+            this._setStatus("Progress restored");
+        } catch (e) {
+            this._setStatus(`Load failed: ${e.message}`);
+            console.error(e);
+        } finally {
+            this._setLoading(false);
+        }
+    },
+
+    /**
+     * 根据当前尺寸+难度是否有存档启用/禁用读取按钮
+     */
+    _updateLoadButton() {
+        const btn = document.getElementById("load-btn");
+        if (btn) btn.disabled = !Storage.hasProgress(this.size, this.difficulty);
+    },
+
     /**
      * 键盘事件
      */
     _handleKeydown(e) {
+        // Shift+Tab 切换计算器：未激活则开启并聚焦，已激活则关闭
+        if (e.key === "Tab" && e.shiftKey) {
+            e.preventDefault();
+            if (!this.calcActive) {
+                // 未激活：开启联动并聚焦输入框
+                this._toggleCalcActive();
+                const display = document.getElementById("calc-display");
+                display.focus();
+                display.select();
+            } else {
+                // 已激活：关闭联动并失焦
+                this._toggleCalcActive();
+                document.getElementById("calc-display").blur();
+            }
+            return;
+        }
+
+        // 计算器输入框聚焦时，不拦截键盘（交由计算器自身处理）
+        if (document.activeElement === document.getElementById("calc-display")) return;
+
         if (!this.puzzle || !Board.selectedCell) return;
         const { row, col } = Board.selectedCell;
 
@@ -501,8 +791,8 @@ const App = {
             Board.selectCell(row, col + 1);
             e.preventDefault();
         }
-        // 退格/删除
-        else if (e.key === "Backspace" || e.key === "Delete") {
+        // Esc/删除：擦除当前格
+        else if (e.key === "Escape" || e.key === "Delete") {
             this.eraseSelected();
             e.preventDefault();
         }
@@ -512,7 +802,7 @@ const App = {
             e.preventDefault();
         }
         // Z 撤销
-        else if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+        else if (e.key === "z" || e.key === "Z") {
             this.undo();
             e.preventDefault();
         }
@@ -534,15 +824,15 @@ const App = {
     },
 
     /**
-     * 难度中文标签
+     * 难度标签
      */
     _difficultyLabel(diff) {
         const labels = {
-            beginner: "入门",
-            easy: "简单",
-            medium: "中等",
-            hard: "困难",
-            expert: "专家",
+            beginner: "Beginner",
+            easy: "Easy",
+            medium: "Medium",
+            hard: "Hard",
+            expert: "Expert",
         };
         return labels[diff] || diff;
     },
@@ -576,18 +866,20 @@ const App = {
             this._calcRender();
         });
 
-        // 按键处理：Enter 执行等号，Esc 归零
+        // 按键处理：数字直接输入，Enter 等号（保持聚焦以支持连续运算），Backspace 归零，+/- 运算
         display.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
                 e.preventDefault();
-                display.blur();
                 this._calcEquals();
-            } else if (e.key === "Escape") {
+            } else if (e.key === "Backspace") {
                 e.preventDefault();
                 this._calcClear();
             } else if (e.key === "+" || e.key === "-") {
                 e.preventDefault();
                 this._calcOp(e.key);
+            } else if (e.key >= "0" && e.key <= "9") {
+                e.preventDefault();
+                this._calcInputDigit(parseInt(e.key));
             }
         });
 
@@ -617,11 +909,11 @@ const App = {
         if (this.calcActive) {
             bar.classList.remove("calc-off");
             toggle.classList.add("active");
-            toggle.title = "关闭计算器联动";
+            toggle.title = "Disable calculator link";
         } else {
             bar.classList.add("calc-off");
             toggle.classList.remove("active");
-            toggle.title = "开启计算器联动";
+            toggle.title = "Enable calculator link";
         }
     },
 
@@ -667,7 +959,8 @@ const App = {
         }
         this.calc.op = op;
         this.calc.fresh = true;
-        this.calc.display = String(this.calc.pending);
+        // 清空输入栏，等待输入下一个数字
+        this.calc.display = "";
         this._calcRender();
     },
 
@@ -679,7 +972,8 @@ const App = {
         const current = this._calcValue();
         const result = this._calcCompute(this.calc.pending, current, this.calc.op);
         this.calc.display = String(result);
-        this.calc.pending = null;
+        // 结果作为新的 pending，允许继续 +/- 运算
+        this.calc.pending = result;
         this.calc.op = null;
         this.calc.fresh = true;
         this._calcRender();

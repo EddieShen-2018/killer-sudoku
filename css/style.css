@@ -1,24 +1,29 @@
 /* 全局样式：黑白灰风格 */
 
 :root {
-    --color-bg: #f5f5f5;
-    --color-surface: #ffffff;
-    --color-border: #333333;
+    --color-bg: #F0F2F5;
+    --color-surface: #FFFFFF;
+    --color-border: #E0E4E8;
     --color-grid: #999999;
     --color-grid-light: #cccccc;
-    --color-text: #1a1a1a;
-    --color-text-secondary: #666666;
-    --color-highlight: #e0e0e0;
-    --color-selected: #ffe066;       /* 选中格：浅黄（较深） */
-    --color-same: #fff3b0;           /* 相同数字：浅黄 */
-    --color-related: #c6efce;        /* 同行同列同宫同笼：浅绿 */
-    --color-input: #4a90d9;          /* 填入数字 / 数字条：浅蓝 */
+    --color-text: #2C3E50;
+    --color-text-secondary: #7F8C8D;
+    --color-highlight: #e8f0fe;
+    --color-selected: #FFF1B5;       /* selected cell: yellow */
+    --color-same: #FFF5BA;           /* same number: light yellow */
+    --color-related: #C7E9C0;        /* same row/col/box/cage: green */
+    --color-input: #5A7A9A;          /* 填入数字 / 数字条 */
     --color-disabled: #cccccc;
-    --color-cage-sum: #444444;
-    --color-note: #888888;
+    --color-cage-sum: #293C52;
+    --color-note: #7F8C8D;
     --color-error: #cc4444;
-    --color-primary: #333333;
-    --color-primary-hover: #555555;
+    --color-primary: #293C52;
+    --color-primary-hover: #5A7A9A;
+    --color-accent: #F39C12;
+    --color-secondary: #5A7A9A;
+    --color-secondary-hover: #6f8db0;
+    --color-tag-bg: #e8f0fe;
+    --color-box-border: #333333;
 
     --radius: 6px;
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -44,10 +49,12 @@ html, body {
 #app {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
     max-width: 600px;
     margin: 0 auto;
     background-color: var(--color-bg);
+    overflow: hidden;
 }
 
 /* 顶部设置栏 */
@@ -72,6 +79,23 @@ html, body {
     gap: 8px;
 }
 
+/* 尺寸 + 难度并排一行，节省顶部空间 */
+.settings-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+    width: 100%;
+}
+
+.settings-row > * {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.settings-row .select {
+    width: 100%;
+}
+
 .setting-group {
     display: flex;
     align-items: center;
@@ -88,6 +112,16 @@ html, body {
 .btn-group {
     display: flex;
     gap: 4px;
+    flex: 1;
+}
+
+/* 顶部操作按钮组（新游戏/保存/读取） */
+.action-group {
+    display: flex;
+    gap: 6px;
+}
+
+.action-group .btn {
     flex: 1;
 }
 
@@ -146,13 +180,34 @@ html, body {
     background-color: var(--color-primary-hover);
 }
 
+/* 次要按钮（保存/读取） */
+.btn-secondary {
+    background-color: var(--color-secondary);
+    color: var(--color-surface);
+    border-color: var(--color-secondary);
+    font-weight: 600;
+    padding: 8px 12px;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: var(--color-secondary-hover);
+    border-color: var(--color-secondary-hover);
+}
+
+.btn-secondary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
 .btn-action {
-    flex: 1;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 4px;
-    padding: 10px 4px;
+    padding: 0;
 }
 
 .btn-action.active {
@@ -166,12 +221,28 @@ html, body {
     line-height: 1;
 }
 
+/* 底部控件：计算器 + 操作按钮同一行 */
+.bottom-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.bottom-controls .calc-bar {
+    flex: 1;
+    min-width: 0;
+}
+
+.bottom-controls .action-row {
+    flex-shrink: 0;
+}
+
 /* 迷你计算器 */
 .calc-bar {
     display: flex;
     align-items: center;
     gap: 4px;
-    margin-bottom: 8px;
     transition: opacity 0.2s ease;
 }
 
@@ -259,6 +330,32 @@ html, body {
     flex-shrink: 0;
 }
 
+/* 提示面板 */
+.hint-panel {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 14px;
+    padding: 4px 12px 6px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+}
+.hint-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.hint-label {
+    opacity: 0.7;
+}
+.hint-value {
+    font-weight: 700;
+    color: var(--color-input);
+    min-width: 16px;
+    text-align: center;
+}
+
 .badge {
     padding: 2px 8px;
     border-radius: 10px;
@@ -274,11 +371,14 @@ html, body {
 /* 棋盘容器 */
 .board-container {
     flex: 1;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 12px;
+    padding: 6px;
     position: relative;
+    container-type: size;
+    overflow: hidden;
 }
 
 .loading {
@@ -298,7 +398,6 @@ html, body {
 .action-row {
     display: flex;
     gap: 6px;
-    margin-bottom: 8px;
 }
 
 /* 数字条 */
@@ -386,13 +485,5 @@ html, body {
 @media (min-width: 600px) {
     .top-bar {
         padding: 14px 16px;
-    }
-    .settings {
-        flex-direction: row;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-    .setting-group {
-        flex: 1;
     }
 }

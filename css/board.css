@@ -3,14 +3,22 @@
 .board {
     display: grid;
     width: 100%;
-    max-width: 500px;
+    width: min(100%, 100cqh);
+    max-width: 560px;
     aspect-ratio: 1;
     background-color: var(--color-border);
     gap: 1px;
     padding: 2px;
-    border: 2px solid var(--color-border);
+    border: 2px solid var(--color-box-border);
     border-radius: 4px;
     position: relative;
+    transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* 通关后棋盘金色边框 */
+.board.completed {
+    border-color: #C9A84C;
+    box-shadow: 0 0 12px #C9A84C;
 }
 
 /* 单元格 */
@@ -70,12 +78,12 @@
     z-index: 1;
 }
 
-/* 标记小字（候选数字） */
+/* 标记小字（候选数字）：内缩右下，避开左上笼和数字 */
 .cell-notes {
     display: grid;
     width: 100%;
     height: 100%;
-    padding: 1px;
+    padding: 10px 3px 3px 10px;
     gap: 0;
     z-index: 1;
 }
@@ -84,43 +92,54 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 8px;
+    font-size: 10px;
     color: var(--color-note);
     line-height: 1;
 }
 
-/* 笼边界：用伪元素绘制内缩虚线，不贴单元格边界 */
+/* 笼边界：用伪元素绘制虚线。
+   仅在无笼边的一侧内缩，有笼边的一侧贴边，
+   这样相邻单元格的笼边在网格线上对齐，转角处无缝连接。 */
 .cell::after {
     content: "";
     position: absolute;
-    inset: 3px;
+    /* 默认四边内缩 3px（无笼边时） */
+    top: 3px;
+    right: 3px;
+    bottom: 3px;
+    left: 3px;
     pointer-events: none;
     z-index: 0;
     border: 0 dashed transparent;
 }
+/* 有笼边的一侧贴到单元格边缘，使相邻格的虚线在网格线上相接 */
 .cell.cage-top::after {
+    top: 0;
     border-top-width: 2px;
-    border-top-color: var(--color-border);
+    border-top-color: var(--color-box-border);
 }
 .cell.cage-bottom::after {
+    bottom: 0;
     border-bottom-width: 2px;
-    border-bottom-color: var(--color-border);
+    border-bottom-color: var(--color-box-border);
 }
 .cell.cage-left::after {
+    left: 0;
     border-left-width: 2px;
-    border-left-color: var(--color-border);
+    border-left-color: var(--color-box-border);
 }
 .cell.cage-right::after {
+    right: 0;
     border-right-width: 2px;
-    border-right-color: var(--color-border);
+    border-right-color: var(--color-box-border);
 }
 
-/* 宫格分隔线：加粗实线 */
+/* 宫格分隔线：加粗实线（黑色） */
 .cell.box-right {
-    border-right: 3px solid var(--color-border) !important;
+    border-right: 3px solid var(--color-box-border) !important;
 }
 .cell.box-bottom {
-    border-bottom: 3px solid var(--color-border) !important;
+    border-bottom: 3px solid var(--color-box-border) !important;
 }
 
 /* 错误单元格 */
@@ -140,7 +159,7 @@
     font-size: 12px;
 }
 .board.size-4 .cell-notes .note {
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .board.size-6 .cell-value {
@@ -150,7 +169,7 @@
     font-size: 10px;
 }
 .board.size-6 .cell-notes .note {
-    font-size: 10px;
+    font-size: 12px;
 }
 
 .board.size-9 .cell-value {
@@ -160,7 +179,7 @@
     font-size: 9px;
 }
 .board.size-9 .cell-notes .note {
-    font-size: 8px;
+    font-size: 10px;
 }
 
 /* 手机端字号调整 */
@@ -173,5 +192,14 @@
     }
     .board.size-9 .cell-value {
         font-size: 18px;
+    }
+    .board.size-4 .cell-notes .note {
+        font-size: 12px;
+    }
+    .board.size-6 .cell-notes .note {
+        font-size: 10px;
+    }
+    .board.size-9 .cell-notes .note {
+        font-size: 9px;
     }
 }
