@@ -452,10 +452,31 @@ html, body {
     border-style: dashed;
 }
 
-/* 响应式：手机端 */
+/* 响应式：手机端 — 压缩非棋盘元素，最大化棋盘空间 */
 @media (max-width: 480px) {
     .title {
-        font-size: 16px;
+        display: none;
+    }
+    .top-bar {
+        padding: 6px 8px;
+    }
+    .status-bar {
+        padding: 2px 8px;
+        font-size: 12px;
+    }
+    .hint-panel {
+        padding: 2px 8px 3px;
+        font-size: 11px;
+        gap: 4px 10px;
+    }
+    .board-container {
+        padding: 2px;
+    }
+    .bottom-bar {
+        padding: 4px 8px 6px;
+    }
+    .bottom-controls {
+        margin-bottom: 4px;
     }
     .btn {
         font-size: 12px;
@@ -477,6 +498,8 @@ html, body {
         font-size: 14px;
     }
     .number-btn {
+        aspect-ratio: auto;
+        height: 30px;
         font-size: 18px;
     }
 }
