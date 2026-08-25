@@ -1,0 +1,511 @@
+/* 全局样式：黑白灰风格 */
+
+:root {
+    --color-bg: #F0F2F5;
+    --color-surface: #FFFFFF;
+    --color-border: #E0E4E8;
+    --color-grid: #999999;
+    --color-grid-light: #cccccc;
+    --color-text: #2C3E50;
+    --color-text-secondary: #7F8C8D;
+    --color-highlight: #e8f0fe;
+    --color-selected: #FFF1B5;       /* selected cell: yellow */
+    --color-same: #FFF5BA;           /* same number: light yellow */
+    --color-related: #C7E9C0;        /* same row/col/box/cage: green */
+    --color-input: #5A7A9A;          /* 填入数字 / 数字条 */
+    --color-disabled: #cccccc;
+    --color-cage-sum: #293C52;
+    --color-note: #7F8C8D;
+    --color-error: #cc4444;
+    --color-primary: #293C52;
+    --color-primary-hover: #5A7A9A;
+    --color-accent: #F39C12;
+    --color-secondary: #5A7A9A;
+    --color-secondary-hover: #6f8db0;
+    --color-tag-bg: #e8f0fe;
+    --color-box-border: #333333;
+
+    --radius: 6px;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: var(--color-bg);
+    overflow: hidden;
+}
+
+/* 顶部设置栏 */
+.top-bar {
+    background-color: var(--color-surface);
+    padding: 10px 12px;
+    box-shadow: var(--shadow);
+    flex-shrink: 0;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--color-text);
+}
+
+.settings {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* 尺寸 + 难度并排一行，节省顶部空间 */
+.settings-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+    width: 100%;
+}
+
+.settings-row > * {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.settings-row .select {
+    width: 100%;
+}
+
+.setting-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.setting-group label {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    min-width: 32px;
+    flex-shrink: 0;
+}
+
+.btn-group {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+}
+
+/* 顶部操作按钮组（新游戏/保存/读取） */
+.action-group {
+    display: flex;
+    gap: 6px;
+}
+
+.action-group .btn {
+    flex: 1;
+}
+
+.select {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid var(--color-grid);
+    border-radius: var(--radius);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    font-size: 14px;
+    outline: none;
+}
+
+/* 按钮通用样式 */
+.btn {
+    padding: 6px 10px;
+    border: 1px solid var(--color-grid);
+    border-radius: var(--radius);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.btn:hover {
+    background-color: var(--color-highlight);
+}
+
+.btn:active {
+    background-color: var(--color-selected);
+}
+
+.btn-toggle {
+    flex: 1;
+    text-align: center;
+}
+
+.btn-toggle.active {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    border-color: var(--color-primary);
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    border-color: var(--color-primary);
+    font-weight: 600;
+    padding: 8px 12px;
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-hover);
+}
+
+/* 次要按钮（保存/读取） */
+.btn-secondary {
+    background-color: var(--color-secondary);
+    color: var(--color-surface);
+    border-color: var(--color-secondary);
+    font-weight: 600;
+    padding: 8px 12px;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: var(--color-secondary-hover);
+    border-color: var(--color-secondary-hover);
+}
+
+.btn-secondary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.btn-action {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0;
+}
+
+.btn-action.active {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    border-color: var(--color-primary);
+}
+
+.btn-action .icon {
+    font-size: 24px;
+    line-height: 1;
+}
+
+/* 底部控件：计算器 + 操作按钮同一行 */
+.bottom-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.bottom-controls .calc-bar {
+    flex: 1;
+    min-width: 0;
+}
+
+.bottom-controls .action-row {
+    flex-shrink: 0;
+}
+
+/* 迷你计算器 */
+.calc-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: opacity 0.2s ease;
+}
+
+/* 计算器关闭状态：整体变灰 */
+.calc-bar.calc-off .calc-display,
+.calc-bar.calc-off .btn-calc:not(.btn-calc-toggle) {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+/* 开关按钮 */
+.btn-calc-toggle {
+    font-size: 18px;
+    line-height: 1;
+    opacity: 0.5;
+    transition: all 0.15s ease;
+}
+
+.btn-calc-toggle.active {
+    opacity: 1;
+    background-color: var(--color-selected);
+    border-color: var(--color-primary);
+}
+
+.calc-display {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    border: 1px solid var(--color-grid);
+    border-radius: var(--radius);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    font-size: 16px;
+    font-weight: 600;
+    text-align: right;
+    padding: 0 8px;
+    outline: none;
+    user-select: none;
+}
+
+.calc-display:focus {
+    border-color: var(--color-primary);
+}
+
+.btn-calc {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: var(--radius);
+    border: 1px solid var(--color-grid);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.btn-calc:hover {
+    background-color: var(--color-highlight);
+}
+
+.btn-calc:active {
+    background-color: var(--color-selected);
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* 状态栏 */
+.status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+}
+
+/* 提示面板 */
+.hint-panel {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 14px;
+    padding: 4px 12px 6px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+}
+.hint-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.hint-label {
+    opacity: 0.7;
+}
+.hint-value {
+    font-weight: 700;
+    color: var(--color-input);
+    min-width: 16px;
+    text-align: center;
+}
+
+.badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-completed {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+}
+
+/* 棋盘容器 */
+.board-container {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.loading {
+    position: absolute;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+}
+
+/* 底部操作区 */
+.bottom-bar {
+    background-color: var(--color-surface);
+    padding: 8px 12px 12px;
+    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+}
+
+.action-row {
+    display: flex;
+    gap: 6px;
+}
+
+/* 数字条 */
+.number-pad {
+    display: grid;
+    gap: 4px;
+}
+
+.number-btn {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-grid);
+    border-radius: var(--radius);
+    background-color: var(--color-surface);
+    color: var(--color-input);
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.number-btn:hover {
+    background-color: var(--color-highlight);
+}
+
+.number-btn:active {
+    background-color: var(--color-selected);
+}
+
+.number-btn.disabled {
+    color: var(--color-disabled);
+    background-color: var(--color-bg);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.number-btn .count {
+    font-size: 9px;
+    color: var(--color-text-secondary);
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    font-weight: 400;
+}
+
+/* 0 按钮：仅用于计算器，视觉区分 */
+.number-btn-zero {
+    color: var(--color-text-secondary);
+    border-style: dashed;
+}
+
+/* 响应式：手机端 — 压缩非棋盘元素，最大化棋盘空间 */
+@media (max-width: 480px) {
+    .title {
+        display: none;
+    }
+    .top-bar {
+        padding: 6px 8px;
+    }
+    .status-bar {
+        padding: 2px 8px;
+        font-size: 12px;
+    }
+    .hint-panel {
+        padding: 2px 8px 3px;
+        font-size: 11px;
+        gap: 4px 10px;
+    }
+    .board-container {
+        padding: 2px;
+    }
+    .bottom-bar {
+        padding: 4px 8px 6px;
+    }
+    .bottom-controls {
+        margin-bottom: 4px;
+    }
+    .btn {
+        font-size: 12px;
+        padding: 5px 8px;
+    }
+    .btn-action {
+        padding: 8px 2px;
+    }
+    .btn-action .icon {
+        font-size: 20px;
+    }
+    .btn-calc {
+        min-width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+    .calc-display {
+        height: 32px;
+        font-size: 14px;
+    }
+    .number-btn {
+        aspect-ratio: auto;
+        height: 30px;
+        font-size: 18px;
+    }
+}
+
+/* 响应式：大屏 */
+@media (min-width: 600px) {
+    .top-bar {
+        padding: 14px 16px;
+    }
+}
